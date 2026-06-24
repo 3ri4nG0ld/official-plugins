@@ -65,6 +65,6 @@ version = "1.0.1"
 author = "noctalia"
 license = "MIT"
 icon = "photo"
-description = "Browse Wallhaven, download wallpapers, and apply them to the desktop."
+description = "Browse Wallhaven wallpapers."
 min_noctalia = "5.0.0"
 tags = ["wallpaper", "wallhaven", "panel"]

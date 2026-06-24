@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = []
 tags = ["wallpaper", "wallhaven", "panel"]
 icon = "photo"
-description = "Browse Wallhaven, download wallpapers, and apply them to the desktop."
+description = "Browse Wallhaven wallpapers."
 
 [[setting]]
 key = "api_key"
