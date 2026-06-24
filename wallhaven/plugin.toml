@@ -1,6 +1,6 @@
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.0.0"
+version = "1.0.1"
 min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
@@ -30,8 +30,8 @@ width = 920
 height = 780
 
 [[widget]]
-id = "open"
-entry = "open.luau"
+id = "wallhaven"
+entry = "wallhaven.luau"
 
   [[widget.setting]]
   key = "glyph"

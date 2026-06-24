@@ -7,9 +7,9 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/wallhaven` |
-| Version | `1.0.0` |
+| Version | `1.0.1` |
 | Minimum Noctalia | `5.0.0` |
-| Entries | Panel: `browser`; bar widget: `open` |
+| Entries | Panel: `browser`; bar widget: `wallhaven` |
 
 ## Usage
 
