@@ -28,6 +28,19 @@ ROOT_ARRAY_FIELDS = ("dependencies", "tags")
 ENTRY_TYPES = ("widget", "panel", "shortcut", "desktop_widget", "launcher_provider", "service")
 SETTING_OWNER_TYPES = ("widget", "panel", "desktop_widget", "launcher_provider")
 SETTING_TYPES = {"string", "string_list", "bool", "glyph", "select", "folder", "int", "color"}
+PANEL_PLACEMENTS = {"attached", "floating"}
+PANEL_POSITIONS = {
+    "auto",
+    "center",
+    "top_left",
+    "top_center",
+    "top_right",
+    "center_left",
+    "center_right",
+    "bottom_left",
+    "bottom_center",
+    "bottom_right",
+}
 
 ROOT_FIELDS = set(ROOT_STRING_FIELDS) | set(ROOT_ARRAY_FIELDS) | set(ENTRY_TYPES) | {
     "setting",
@@ -36,7 +49,7 @@ ROOT_FIELDS = set(ROOT_STRING_FIELDS) | set(ROOT_ARRAY_FIELDS) | set(ENTRY_TYPES
 BASE_ENTRY_FIELDS = {"id", "entry"}
 ENTRY_FIELDS = {
     "widget": BASE_ENTRY_FIELDS | {"setting"},
-    "panel": BASE_ENTRY_FIELDS | {"setting", "width", "height"},
+    "panel": BASE_ENTRY_FIELDS | {"setting", "width", "height", "placement", "position", "open_near_click"},
     "desktop_widget": BASE_ENTRY_FIELDS | {"setting"},
     "service": BASE_ENTRY_FIELDS,
     "shortcut": BASE_ENTRY_FIELDS,
@@ -281,6 +294,25 @@ class Validator:
             value = entry[field]
             if not is_number(value) or value < 0:
                 self.add_context_error(manifest_path, context, f"{field} must be a non-negative number")
+
+        if "placement" in entry:
+            placement = entry["placement"]
+            if not is_non_empty_string(placement):
+                self.add_context_error(manifest_path, context, "placement must be a non-empty string")
+            elif placement not in PANEL_PLACEMENTS:
+                valid = ", ".join(sorted(PANEL_PLACEMENTS))
+                self.add_context_error(manifest_path, context, f"placement must be one of: {valid}")
+
+        if "position" in entry:
+            position = entry["position"]
+            if not is_non_empty_string(position):
+                self.add_context_error(manifest_path, context, "position must be a non-empty string")
+            elif position not in PANEL_POSITIONS:
+                valid = ", ".join(sorted(PANEL_POSITIONS))
+                self.add_context_error(manifest_path, context, f"position must be one of: {valid}")
+
+        if "open_near_click" in entry and not isinstance(entry["open_near_click"], bool):
+            self.add_context_error(manifest_path, context, "open_near_click must be a bool")
 
     def validate_entries(
         self,
