@@ -11,7 +11,7 @@ min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["example", "demo", "launcher", "panel"]
+tags = ["demo"]
 icon = "puzzle"
 description = "A minimal reference plugin: a bar widget with settings and IPC, a service, a shortcut, a launcher provider with setQuery drill-in, and a panel of interactive controls."
 

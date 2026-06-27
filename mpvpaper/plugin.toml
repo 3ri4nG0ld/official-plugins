@@ -15,7 +15,7 @@ min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
 dependencies = ["mpvpaper", "mpv"]
-tags = ["wallpaper", "video", "mpvpaper"]
+tags = ["wallpaper", "video"]
 icon = "movie"
 description = "Video wallpapers via mpvpaper."
 

@@ -14,7 +14,7 @@ license = "MIT"
 dependencies = []
 icon = "cat"
 description = "A cat that slaps your bar when you type or to the beat."
-tags = ["fun", "animation", "cat"]
+tags = ["fun", "animation"]
 
 [[widget]]
 id = "cat"

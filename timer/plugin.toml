@@ -10,7 +10,7 @@ min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["timer", "countdown", "desktop"]
+tags = ["countdown", "desktop"]
 icon = "clock"
 description = "A countdown timer desktop widget with start/pause and reset."
 

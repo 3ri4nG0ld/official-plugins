@@ -5,7 +5,7 @@ min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["kaomoji", "emoticon", "launcher", "fun"]
+tags = ["emoticon", "launcher"]
 icon = "mood-smile"
 description = "Browse and search kaomoji emoticons from the launcher and copy them to the clipboard."
 
