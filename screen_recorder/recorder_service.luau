@@ -1,3 +1,4 @@
+--!nonstrict
 -- GPU Screen Recorder — headless service.
 -- Owns all recording / replay-buffer logic and runs for the whole session, so a
 -- recording can be started from the control-center shortcut with no bar widget
@@ -273,7 +274,7 @@ local function startRecording(focusedOutputName)
     updateDisplay()
 
     checkPortalsAsync(function(portalAvailable)
-        if state ~= "pending" then return end
+        if (state :: string) ~= "pending" then return end -- cast: state is widened, not the "idle" the analyzer narrows it to
 
         if not portalAvailable then
             setState("idle")
@@ -322,7 +323,7 @@ local function startReplay(focusedOutputName)
     updateDisplay()
 
     checkPortalsAsync(function(portalAvailable)
-        if state ~= "replay_pending" then return end
+        if (state :: string) ~= "replay_pending" then return end -- cast: state is widened, not the "idle" the analyzer narrows it to
 
         if not portalAvailable then
             setState("idle")

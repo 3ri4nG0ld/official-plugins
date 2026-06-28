@@ -1,3 +1,4 @@
+--!nonstrict
 -- Video wallpaper picker.
 -- Browse the configured video directory as a grid, choose a target output, and apply a
 -- video. Selection is delivered to the headless service through the shared "command"
@@ -11,7 +12,7 @@ local PAGE_SIZE = 24 -- one fixed onPick callback per slot below
 local THUMB_MAX_CONCURRENT = 4
 local TILE_RADIUS = 12
 local VIDEO_EXTENSIONS = { mp4 = true, webm = true, mkv = true, mov = true, gif = true }
-local CACHE_DIR = (noctalia.getenv("XDG_CACHE_HOME") or (noctalia.getenv("HOME") .. "/.cache")) .. "/noctalia/mpvpaper"
+local CACHE_DIR = (noctalia.getenv("XDG_CACHE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.cache")) .. "/noctalia/mpvpaper"
 
 local videos = {}      -- { { path=, name=, ext= }, ... }
 local page = 1

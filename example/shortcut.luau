@@ -1,3 +1,4 @@
+--!nonstrict
 -- Control-center [[shortcut]] entry: a quick-toggle tile.
 --
 --   shortcut.setLabel(text)

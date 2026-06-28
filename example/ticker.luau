@@ -1,3 +1,4 @@
+--!nonstrict
 -- Headless [[service]] entry: runs in the background with no UI, ticking once a
 -- second and publishing an incrementing counter to the plugin's shared state.
 -- Any of this plugin's entries (the hello widget) can read it with

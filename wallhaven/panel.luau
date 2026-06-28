@@ -1,10 +1,11 @@
+--!nonstrict
 -- Wallhaven wallpaper browser panel.
 --
 -- Browse search results with category and purity filters and pagination, download the full
 -- image into the configured wallpaper directory, then apply it via noctalia.setWallpaper.
 
 local API_BASE = "https://wallhaven.cc/api/v1"
-local CACHE_DIR = (noctalia.getenv("XDG_STATE_HOME") or (noctalia.getenv("HOME") .. "/.local/state")) .. "/noctalia/wallhaven/thumbs"
+local CACHE_DIR = (noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.local/state")) .. "/noctalia/wallhaven/thumbs"
 local PANEL_WIDTH = 920
 local PANEL_PADDING = 28 -- Style::panelPadding * 2 on the host surface
 local COLUMNS = 4

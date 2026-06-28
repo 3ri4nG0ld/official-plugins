@@ -1,3 +1,4 @@
+--!nonstrict
 -- Bongo Cat — a cat that sits in your bar and slaps when you type or to the beat.
 --
 -- Configure input devices in the widget settings (input_devices = [

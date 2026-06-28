@@ -1,3 +1,4 @@
+--!nonstrict
 -- GPU Screen Recorder — control-center quick tile.
 --
 -- This tile holds no recording logic of its own. It mirrors the recorder widget

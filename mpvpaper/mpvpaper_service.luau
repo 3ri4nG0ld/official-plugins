@@ -1,3 +1,4 @@
+--!nonstrict
 -- Video wallpaper — headless service.
 -- Owns the mpvpaper supervisor (one long-lived helper process driven through a FIFO)
 -- and the per-output video assignments. The picker panel drives it through the shared
@@ -8,7 +9,7 @@ noctalia.setUpdateInterval(1000)
 
 local RUNTIME = noctalia.getenv("XDG_RUNTIME_DIR") or "/tmp"
 local FIFO = RUNTIME .. "/noctalia-mpvpaper.fifo"
-local STATE_DIR = (noctalia.getenv("XDG_STATE_HOME") or (noctalia.getenv("HOME") .. "/.local/state")) .. "/noctalia/mpvpaper"
+local STATE_DIR = (noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.local/state")) .. "/noctalia/mpvpaper"
 local STATE_FILE = STATE_DIR .. "/assignments.json"
 
 local assignments = {} -- connector -> video path
@@ -68,7 +69,7 @@ local function startSupervisor()
   if supervisorStarted then
     return
   end
-  local script = noctalia.pluginDir() .. "/supervisor.sh"
+  local script = (noctalia.pluginDir() or "") .. "/supervisor.sh"
   local cmd = string.format(
     "exec sh %s %s %s %s",
     shellQuote(script), shellQuote(FIFO), shellQuote(mpvpaperFlags()), shellQuote(mpvOptions())
@@ -81,7 +82,7 @@ end
 
 local function persist()
   noctalia.runAsync("mkdir -p " .. shellQuote(STATE_DIR))
-  noctalia.writeFile(STATE_FILE, noctalia.json.encode(assignments))
+  noctalia.writeFile(STATE_FILE, noctalia.json.encode(assignments) or "")
 end
 
 local function loadAssignments()

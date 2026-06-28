@@ -1,3 +1,4 @@
+--!nonstrict
 -- GPU Screen Recorder — bar widget (thin presentation client).
 --
 -- The recording logic lives in the [[service]] (recorder_service.luau), which runs

@@ -1,3 +1,4 @@
+--!nonstrict
 -- Countdown timer desktop widget — the reference [[desktop_widget]] entry.
 --
 -- Desktop widgets describe their UI declaratively: build a tree with the ui.*

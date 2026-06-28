@@ -1,3 +1,4 @@
+--!nonstrict
 -- Reference [[panel]] entry — a settings-style panel of interactive controls.
 --
 -- Panels describe their UI declaratively, exactly like desktop widgets: build a

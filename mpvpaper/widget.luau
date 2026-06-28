@@ -1,3 +1,4 @@
+--!nonstrict
 -- Bar widget that opens the video wallpaper picker.
 
 local glyph = barWidget.getConfig("glyph")

@@ -1,3 +1,4 @@
+--!nonstrict
 -- Minimal reference plugin entry: a bar widget that shows a configurable label
 -- and glyph, counts clicks, and accepts IPC to change its text at runtime.
 --

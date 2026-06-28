@@ -1,3 +1,4 @@
+--!nonstrict
 -- Bar widget that opens the Wallhaven browser panel.
 
 local glyph = barWidget.getConfig("glyph")

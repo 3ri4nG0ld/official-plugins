@@ -1,3 +1,4 @@
+--!nonstrict
 -- Launcher provider for the example plugin.
 --
 -- Type `/ex` in the launcher. The top level lists categories; pressing Enter on

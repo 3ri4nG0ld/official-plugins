@@ -1,3 +1,4 @@
+--!nonstrict
 -- Kaomoji launcher provider.
 --
 -- Type `/kao` in the launcher to list every kaomoji; the launcher's category

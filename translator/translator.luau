@@ -1,3 +1,4 @@
+--!nonstrict
 -- Translator launcher provider.
 --
 -- Usage from the launcher: `/tr <lang> <text>` — e.g. `/tr es hello world`.
