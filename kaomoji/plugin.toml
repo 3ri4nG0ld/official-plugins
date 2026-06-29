@@ -1,6 +1,6 @@
 id = "noctalia/kaomoji"
 name = "Kaomoji"
-version = "1.0.0"
+version = "1.0.1"
 min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
@@ -9,6 +9,13 @@ tags = ["emoticon", "launcher"]
 icon = "mood-smile"
 description = "Browse and search kaomoji emoticons from the launcher and copy them to the clipboard."
 
+[[setting]]
+key = "notify_on_copy"
+type = "bool"
+label_key = "settings.notify_on_copy.label"
+description_key = "settings.notify_on_copy.description"
+default = true
+
 
 [[launcher_provider]]
 id = "kaomoji"
@@ -16,13 +23,6 @@ entry = "kaomoji.luau"
 prefix = "/kao"
 glyph = "mood-smile"
 include_in_global_search = false
-
-  [[launcher_provider.setting]]
-  key = "notify_on_copy"
-  type = "bool"
-  label_key = "settings.notify_on_copy.label"
-  description_key = "settings.notify_on_copy.description"
-  default = true
 
   # Category filter bar. Each label must match the `category` field the script
   # sets on its result rows (see kaomoji.luau / database.json).
