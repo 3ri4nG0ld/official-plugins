@@ -9,7 +9,7 @@ Control Center.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/screen_recorder` |
-| Version | `1.1.6` |
+| Version | `1.1.9` |
 | Minimum Noctalia | `5.0.0` |
 | Entries | Service: `service`; bar widget: `recorder`; shortcut: `toggle` |
 
@@ -71,14 +71,30 @@ Replay controls are available only when `replay_enabled` is true.
 
 ## IPC
 
-Commands can be sent directly to the service:
+Recording runs in a headless **service**, which is a singleton with no output, so
+the IPC target is always `all`:
 
 ```sh
-noctalia msg plugin noctalia/screen_recorder:service focused start
-noctalia msg plugin noctalia/screen_recorder:service focused stop
-noctalia msg plugin noctalia/screen_recorder:service focused toggle
-noctalia msg plugin noctalia/screen_recorder:service focused replay-start
-noctalia msg plugin noctalia/screen_recorder:service focused replay-stop
-noctalia msg plugin noctalia/screen_recorder:service focused replay-toggle
-noctalia msg plugin noctalia/screen_recorder:service focused replay-save
+noctalia msg plugin noctalia/screen_recorder:service all start
+noctalia msg plugin noctalia/screen_recorder:service all stop
+noctalia msg plugin noctalia/screen_recorder:service all toggle
+noctalia msg plugin noctalia/screen_recorder:service all replay-start
+noctalia msg plugin noctalia/screen_recorder:service all replay-stop
+noctalia msg plugin noctalia/screen_recorder:service all replay-toggle
+noctalia msg plugin noctalia/screen_recorder:service all replay-save
 ```
+
+### Capture source override
+
+`start` and `replay-start` accept an optional payload that overrides the
+`video_source` setting for that capture: `focused`, `portal`, or `region`. Any
+other value is ignored and the configured source is used.
+
+```sh
+noctalia msg plugin noctalia/screen_recorder:service all start focused
+noctalia msg plugin noctalia/screen_recorder:service all start portal
+noctalia msg plugin noctalia/screen_recorder:service all replay-start region
+```
+
+Here `all` is the IPC target (which instance receives the event) and the trailing
+word is the capture source — two separate fields.

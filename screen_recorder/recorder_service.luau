@@ -140,8 +140,13 @@ local function buildResolutionFlag()
     return if res ~= "original" then `-s {res}` else ""
 end
 
-local function resolveVideoSource(errorTitle, focusedOutputName)
-    local source = cfg("video_source")
+-- Capture modes a caller may request. An IPC override outside this set is
+-- discarded so an arbitrary payload can never reach the gpu-screen-recorder
+-- command line.
+local VIDEO_SOURCES = { focused = true, portal = true, region = true }
+
+local function resolveVideoSource(errorTitle, focusedOutputName, sourceOverride)
+    local source = if sourceOverride ~= nil and VIDEO_SOURCES[sourceOverride] then sourceOverride else cfg("video_source")
     if source ~= "focused" then
         return source
     end
@@ -180,8 +185,8 @@ elif command -v flatpak >/dev/null 2>&1 && _gpuscreenrecorder_flatpak_installed;
   flatpak run --command=gpu-screen-recorder com.dec05eba.gpu_screen_recorder]]
 end
 
-local function buildRecordCommand(focusedOutputName)
-    local source = resolveVideoSource(noctalia.tr("notify.recording-failed"), focusedOutputName)
+local function buildRecordCommand(focusedOutputName, sourceOverride)
+    local source = resolveVideoSource(noctalia.tr("notify.recording-failed"), focusedOutputName, sourceOverride)
     if source == nil then return nil end
 
     local dir = outputDirectory()
@@ -204,8 +209,8 @@ local function buildRecordCommand(focusedOutputName)
     return `{buildGsrPrefix()} {flags}{buildGsrSuffix()} {flags}\nfi`
 end
 
-local function buildReplayCommand(focusedOutputName)
-    local source = resolveVideoSource(noctalia.tr("notify.replay-failed"), focusedOutputName)
+local function buildReplayCommand(focusedOutputName, sourceOverride)
+    local source = resolveVideoSource(noctalia.tr("notify.replay-failed"), focusedOutputName, sourceOverride)
     if source == nil then return nil end
 
     local dir = outputDirectory()
@@ -266,7 +271,7 @@ end
 
 -- ── Recording controls ───────────────────────────────────────────────────
 
-local function startRecording(focusedOutputName)
+local function startRecording(focusedOutputName, sourceOverride)
     if not isAvailable or state ~= "idle" then return end
 
     setState("pending")
@@ -283,7 +288,7 @@ local function startRecording(focusedOutputName)
             return
         end
 
-        local cmd = buildRecordCommand(focusedOutputName)
+        local cmd = buildRecordCommand(focusedOutputName, sourceOverride)
         if not cmd then
             setState("idle")
             updateDisplay()
@@ -314,7 +319,7 @@ end
 
 -- ── Replay controls ──────────────────────────────────────────────────────
 
-local function startReplay(focusedOutputName)
+local function startReplay(focusedOutputName, sourceOverride)
     if not isAvailable or state ~= "idle" then return end
     if not cfg("replay_enabled") then return end
 
@@ -332,7 +337,7 @@ local function startReplay(focusedOutputName)
             return
         end
 
-        local cmd = buildReplayCommand(focusedOutputName)
+        local cmd = buildReplayCommand(focusedOutputName, sourceOverride)
         if not cmd then
             setState("idle")
             updateDisplay()
@@ -470,35 +475,41 @@ function update()
 end
 
 function onIpc(event, payload)
+    -- Widget/shortcut drive this through the state channel with a table payload;
+    -- the CLI passes the trailing IPC argument as a string. A string payload, or a
+    -- table `source` field, is an optional capture-mode override (focused | portal
+    -- | region) applied to this start; resolveVideoSource validates it.
     local focusedOutputName = nil
+    local sourceOverride = nil
     if type(payload) == "table" then
         focusedOutputName = payload.focusedOutputName
+        sourceOverride = payload.source
     elseif type(payload) == "string" and payload ~= "" then
-        focusedOutputName = payload
+        sourceOverride = payload
     end
     if focusedOutputName == nil or focusedOutputName == "" then
         focusedOutputName = noctalia.focusedOutputName()
     end
 
     if event == "start" then
-        startRecording(focusedOutputName)
+        startRecording(focusedOutputName, sourceOverride)
     elseif event == "stop" then
         stopRecording()
     elseif event == "toggle" then
         if table.find(RECORDING_STATES, state) then
             stopRecording()
         elseif state == "idle" then
-            startRecording(focusedOutputName)
+            startRecording(focusedOutputName, sourceOverride)
         end
     elseif event == "replay-start" then
-        startReplay(focusedOutputName)
+        startReplay(focusedOutputName, sourceOverride)
     elseif event == "replay-stop" then
         stopReplay()
     elseif event == "replay-toggle" then
         if table.find(REPLAY_STATES, state) then
             stopReplay()
         elseif state == "idle" then
-            startReplay(focusedOutputName)
+            startReplay(focusedOutputName, sourceOverride)
         end
     elseif event == "replay-save" or event == "save-replay" then
         saveReplay()
