@@ -85,7 +85,7 @@ tags = ["wallpaper", "video"]
 [[plugin]]
 id = "noctalia/kaomoji"
 name = "Kaomoji"
-version = "1.0.0"
+version = "1.0.1"
 author = "noctalia"
 license = "MIT"
 icon = "mood-smile"
