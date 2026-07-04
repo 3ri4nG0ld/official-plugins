@@ -70,20 +70,38 @@ end
 
 -- Check if the selected output has an active video
 local function hasActiveVideo()
+  local assignments = noctalia.state.get("assignments")
+  if type(assignments) ~= "table" then return false end
+  
   if selectedConnectorName == "" then
-    return assignmentFor("*") ~= nil
+    for k, v in pairs(assignments) do
+      if v ~= nil then return true end
+    end
+    return false
   end
-  return assignmentFor(selectedConnectorName) ~= nil or assignmentFor("*") ~= nil
+  return assignments[selectedConnectorName] ~= nil or assignments["*"] ~= nil
 end
 
 -- Check if the selected output is currently paused
 local function isPausedForSelection()
   local paused = noctalia.state.get("paused")
   if type(paused) ~= "table" then return false end
+  
   if selectedConnectorName == "" then
-    return paused["*"] == true
+    for k, v in pairs(paused) do
+      if v == true then return true end
+    end
+    return false
   end
   return paused[selectedConnectorName] == true or paused["*"] == true
+end
+
+-- Returns true when the selected individual connector has no per-connector
+-- assignment but inherits a video from the wildcard ("*") assignment.
+-- In this case, pause/stop must be done via "All Outputs" instead.
+local function isWildcardOnly()
+  if selectedConnectorName == "" then return false end
+  return assignmentFor(selectedConnectorName) == nil and assignmentFor("*") ~= nil
 end
 
 
@@ -109,7 +127,8 @@ local function stopSelected()
 end
 
 local function toggleSelected()
-  sendCommand("toggle", selectedConnectorName, nil)
+  local action = isPausedForSelection() and "thaw" or "freeze"
+  sendCommand(action, selectedConnectorName, nil)
   render()
 end
 
@@ -339,6 +358,12 @@ render = function()
   local pauseBtnText = paused and tr("resume") or tr("pause")
   local pauseBtnGlyph = paused and "player-play" or "player-pause"
   local hasVideo = hasActiveVideo()
+  local wildcardOnly = isWildcardOnly()
+  local pauseEnabled = hasVideo and not wildcardOnly
+  local stopEnabled = hasVideo and not wildcardOnly
+  
+  -- Lock the output selector if "All Outputs" (*) is currently playing a video.
+  local selectEnabled = assignmentFor("*") == nil
 
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
@@ -354,9 +379,10 @@ render = function()
         selectedIndex = selectedIndex,
         onChange = "onOutputChange",
         flexGrow = 1,
+        enabled = selectEnabled,
       }),
-      ui.button({ text = pauseBtnText, glyph = pauseBtnGlyph, variant = "outline", onClick = "onToggle", enabled = hasVideo }),
-      ui.button({ text = tr("stop"), glyph = "player-stop", variant = "outline", onClick = "onStop" }),
+      ui.button({ text = pauseBtnText, glyph = pauseBtnGlyph, variant = "outline", onClick = "onToggle", enabled = pauseEnabled }),
+      ui.button({ text = tr("stop"), glyph = "player-stop", variant = "outline", onClick = "onStop", enabled = stopEnabled }),
     }),
 
     ui.scroll({ flexGrow = 1, gap = 12 }, {

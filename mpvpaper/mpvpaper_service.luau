@@ -41,6 +41,15 @@ local function unitNameFor(connector)
   return "mpvpaper-" .. connector:gsub("[^%w%-]", "_") .. ".scope"
 end
 
+-- Builds a precise pkill -f pattern that matches only the exact connector.
+-- Targets the '-p <connector>' argument followed by a space, preventing partial
+-- matches (e.g., DP-1 accidentally matching DP-10 or DP-11).
+local function pkillPattern(connector)
+  -- Escape POSIX ERE metacharacters in the connector name (e.g., '*' for wildcard).
+  local escaped = connector:gsub("([%.%*%+%?%(%)%[%]%^%$|\\{}])", "\\%1")
+  return shellQuote("-p " .. escaped .. " ")
+end
+
 -- Executes a function for every affected physical output.
 -- Avoids massive code duplication for wildcard ("*") assignments.
 local function forEachOutput(connector, fn)
@@ -135,7 +144,7 @@ local function extractStaticWallpaper(connector, videoPath)
       if success and noctalia.fileExists(outPath) then
         forEachOutput(connector, function(name)
           noctalia.setWallpaper(name, outPath)
-          noctalia.setWallpaperEnabled(name, false)
+          noctalia.setWallpaperEnabled(name, true)
         end)
       else
         forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, true) end)
@@ -153,7 +162,7 @@ end
 -- without systemd, matching by command line via pkill is the only reliable way to terminate it.
 local function killMpvpaper(connector, callback)
   local killCmd
-  local pattern = shellQuote("mpvpaper .*" .. connector)
+  local pattern = pkillPattern(connector)
   if cfg("run_as_systemd") then
     local unitName = unitNameFor(connector)
     if isPaused[connector] then
@@ -164,9 +173,9 @@ local function killMpvpaper(connector, callback)
     end
   elseif isPaused[connector] then
     -- A SIGSTOP'd process ignores SIGTERM. We must resume it right before killing.
-    killCmd = "pkill -CONT -f " .. pattern .. " ; pkill -f " .. pattern
+    killCmd = "pkill -CONT -f -- " .. pattern .. " ; pkill -f -- " .. pattern
   else
-    killCmd = "pkill -f " .. pattern
+    killCmd = "pkill -f -- " .. pattern
   end
   
   isPaused[connector] = false
@@ -183,7 +192,10 @@ local function startMpvpaper(connector, path)
   -- Temporarily set the cached thumbnail as the background to prevent black screens during startup.
   local thumb = CACHE_DIR .. "/" .. path:gsub("[^%w]", "_") .. ".jpg"
   if noctalia.fileExists(thumb) then
-    forEachOutput(connector, function(name) noctalia.setWallpaper(name, thumb) end)
+    forEachOutput(connector, function(name) 
+      noctalia.setWallpaper(name, thumb) 
+      noctalia.setWallpaperEnabled(name, true)
+    end)
   end
 
   killMpvpaper(connector, function()
@@ -206,7 +218,9 @@ local function startMpvpaper(connector, path)
       cmd = "systemd-run --user --scope " .. propsCmd .. "--unit=" .. shellQuote(unitName) .. " " .. cmd
     end
     
-    noctalia.runAsync("sh -c " .. shellQuote(cmd .. " >/dev/null 2>&1 &"))
+    noctalia.runAsync("sh -c " .. shellQuote(cmd .. " >/dev/null 2>&1 &") .. " ; sleep 0.8", function()
+      forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, false) end)
+    end)
   end)
 end
 
@@ -221,7 +235,7 @@ local function freezeMpvpaper(connector)
     noctalia.runAsync("systemctl --user freeze " .. shellQuote(unitName))
   else
     -- Send SIGSTOP to freeze the process in place, preserving the last frame on screen.
-    noctalia.runAsync("pkill -STOP -f " .. shellQuote("mpvpaper .*" .. connector))
+    noctalia.runAsync("pkill -STOP -f -- " .. pkillPattern(connector))
   end
 end
 
@@ -232,7 +246,7 @@ local function thawMpvpaper(connector)
     noctalia.runAsync("systemctl --user thaw " .. shellQuote(unitName))
   else
     -- Send SIGCONT to resume the frozen process.
-    noctalia.runAsync("pkill -CONT -f " .. shellQuote("mpvpaper .*" .. connector))
+    noctalia.runAsync("pkill -CONT -f -- " .. pkillPattern(connector))
   end
 end
 
@@ -283,7 +297,6 @@ local function setVideo(connector, path)
   assignments[connector] = path
   persist()
   
-  forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, false) end)
   startMpvpaper(connector, path)
   
   publish()
@@ -303,7 +316,6 @@ end
 -- Applies saved video assignments upon plugin startup.
 local function applyAll()
   for connector, path in pairs(assignments) do
-    forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, false) end)
     startMpvpaper(connector, path)
   end
 end
@@ -322,7 +334,6 @@ function onOutputsChanged()
 
   -- Automatically apply wildcard wallpaper to newly connected monitors.
   if newMonitor and assignments["*"] then
-    forEachOutput("*", function(name) noctalia.setWallpaperEnabled(name, false) end)
     startMpvpaper("*", assignments["*"])
   end
 
@@ -330,7 +341,6 @@ function onOutputsChanged()
   for connector, path in pairs(assignments) do
     if connector ~= "*" then
       if present[connector] and not lastPresent[connector] then
-        noctalia.setWallpaperEnabled(connector, false)
         startMpvpaper(connector, path)
       end
     end
