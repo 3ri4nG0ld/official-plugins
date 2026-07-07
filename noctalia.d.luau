@@ -156,6 +156,13 @@ export type Noctalia = {
 
 declare noctalia: Noctalia
 
+-- One node of a declarative ui.* control tree (bar widgets, desktop widgets, panels).
+export type UiNode = {
+  type: string,
+  props: { [string]: any },
+  children: { UiNode },
+}
+
 -- ── barWidget.* — [[widget]] presentation ────────────────────────────────────
 
 declare barWidget: {
@@ -169,6 +176,9 @@ declare barWidget: {
   setGlyphColor: (role: string, mode: string?) -> (),
   isVertical: () -> boolean,
   setVisible: (visible: boolean) -> (),
+  -- Declarative alternative to setText/setGlyph: the tree replaces the built-in
+  -- glyph/text row. ui.input/ui.select/ui.scroll are not supported in the bar.
+  render: (tree: UiNode) -> (),
   getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
 }
 
@@ -181,13 +191,7 @@ declare shortcut: {
   setEnabled: (enabled: boolean) -> (),
 }
 
--- ── ui.* — declarative control tree (desktop widgets + panels) ───────────────
-
-export type UiNode = {
-  type: string,
-  props: { [string]: any },
-  children: { UiNode },
-}
+-- ── ui.* — declarative control tree (bar widgets, desktop widgets, panels) ───
 
 type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 
