@@ -104,6 +104,12 @@ export type Noctalia = {
   outputs: () -> { Output },
   isDarkMode: () -> boolean,
 
+  -- App icons. Resolves an app id (desktop-entry id / StartupWMClass) — or a
+  -- raw icon name when no entry matches — to an icon file path via the host's
+  -- XDG icon-theme resolver, for use with ui.image. sizePx is the intended
+  -- on-screen pixel size; nil when nothing resolves.
+  appIconPath: (appIdOrIconName: string, sizePx: number?) -> string?,
+
   -- Wallpaper. setWallpaper(path) targets all outputs; setWallpaper(connector,
   -- path) targets one.
   setWallpaperEnabled: (connector: string, enabled: boolean) -> (),
@@ -183,6 +189,9 @@ declare barWidget: {
   setColor: (role: string, mode: string?) -> (),
   setGlyphColor: (role: string, mode: string?) -> (),
   isVertical: () -> boolean,
+  -- Connector name of the output this widget instance's bar is on (nil when
+  -- unknown). Per-instance, unlike noctalia.focusedOutputName().
+  outputName: () -> string?,
   setVisible: (visible: boolean) -> (),
   -- Declarative alternative to setText/setGlyph: the tree replaces the built-in
   -- glyph/text row. ui.input/ui.select/ui.scroll are not supported in the bar.
