@@ -47,7 +47,7 @@ end
 local function pkillPattern(connector)
   -- Escape POSIX ERE metacharacters in the connector name (e.g., '*' for wildcard).
   local escaped = connector:gsub("([%.%*%+%?%(%)%[%]%^%$|\\{}])", "\\%1")
-  return shellQuote("-p " .. escaped .. " ")
+  return shellQuote("(^|/)mpvpaper .* " .. escaped .. " ")
 end
 
 -- Executes a function for every affected physical output.
@@ -202,7 +202,7 @@ local function startMpvpaper(connector, path)
     local flags = mpvpaperFlags()
     local cmd = "mpvpaper "
     if flags ~= "" then cmd = cmd .. flags .. " " end
-    cmd = cmd .. "-p " .. shellQuote(connector) .. " " .. shellQuote(path) .. " -o " .. shellQuote(mpvOptions())
+    cmd = cmd .. "-o " .. shellQuote(mpvOptions()) .. " " .. shellQuote(connector) .. " " .. shellQuote(path) -- mpvpaper -o [mpv-options] [connector] [video-path]
     
     local nice = cfg("nice")
     if type(nice) == "number" and nice ~= 0 then
