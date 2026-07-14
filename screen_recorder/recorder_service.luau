@@ -143,10 +143,19 @@ end
 -- Capture modes a caller may request. An IPC override outside this set is
 -- discarded so an arbitrary payload can never reach the gpu-screen-recorder
 -- command line.
-local VIDEO_SOURCES = { focused = true, portal = true, region = true }
+local VIDEO_SOURCES = { focused = true, portal = true }
+
+local function selectedVideoSource(sourceOverride)
+    if sourceOverride ~= nil and VIDEO_SOURCES[sourceOverride] then
+        return sourceOverride
+    end
+
+    local configured = cfg("video_source")
+    return if VIDEO_SOURCES[configured] then configured else "portal"
+end
 
 local function resolveVideoSource(errorTitle, focusedOutputName, sourceOverride)
-    local source = if sourceOverride ~= nil and VIDEO_SOURCES[sourceOverride] then sourceOverride else cfg("video_source")
+    local source = selectedVideoSource(sourceOverride)
     if source ~= "focused" then
         return source
     end
@@ -233,7 +242,12 @@ end
 
 -- ── Portal check ─────────────────────────────────────────────────────────
 
-local function checkPortalsAsync(callback)
+local function checkPortalsIfNeededAsync(sourceOverride, callback)
+    if selectedVideoSource(sourceOverride) ~= "portal" then
+        callback(true)
+        return
+    end
+
     local pending = 5
     local hasPortal = false
     local hasBackend = false
@@ -278,7 +292,7 @@ local function startRecording(focusedOutputName, sourceOverride)
     pendingTick = 0
     updateDisplay()
 
-    checkPortalsAsync(function(portalAvailable)
+    checkPortalsIfNeededAsync(sourceOverride, function(portalAvailable)
         if (state :: string) ~= "pending" then return end -- cast: state is widened, not the "idle" the analyzer narrows it to
 
         if not portalAvailable then
@@ -327,7 +341,7 @@ local function startReplay(focusedOutputName, sourceOverride)
     pendingTick = 0
     updateDisplay()
 
-    checkPortalsAsync(function(portalAvailable)
+    checkPortalsIfNeededAsync(sourceOverride, function(portalAvailable)
         if (state :: string) ~= "replay_pending" then return end -- cast: state is widened, not the "idle" the analyzer narrows it to
 
         if not portalAvailable then
@@ -477,8 +491,8 @@ end
 function onIpc(event, payload)
     -- Widget/shortcut drive this through the state channel with a table payload;
     -- the CLI passes the trailing IPC argument as a string. A string payload, or a
-    -- table `source` field, is an optional capture-mode override (focused | portal
-    -- | region) applied to this start; resolveVideoSource validates it.
+    -- table `source` field, is an optional capture-mode override (focused | portal)
+    -- applied to this start; resolveVideoSource validates it.
     local focusedOutputName = nil
     local sourceOverride = nil
     if type(payload) == "table" then
