@@ -60,7 +60,7 @@ export type LauncherResult = {
   badge: string?,
   category: string?, -- must match a [[launcher_provider.category]] label
   presentation: string?,
-  query: string?, -- echo the onQuery text so late async results map back
+  query: string?, -- on activate, set this provider's query to this sub-query (host adds the prefix)
   score: number?,
 }
 
@@ -239,7 +239,7 @@ declare ui: {
 
 declare launcher: {
   setResults: (query: string, results: { LauncherResult }) -> (),
-  setQuery: (text: string) -> (),
+  setQuery: (text: string) -> (), -- set input to this provider's prefix + text (stays in provider); "" resets to root
   getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
 }
 
@@ -269,6 +269,8 @@ declare panel: {
 --   function update() end                       -- bar/desktop widget, service tick
 --   function onIpc(event, payload) end          -- any entry (payload: string?)
 --   function onClick() / onRightClick() end     -- shortcut
+--   function onScroll(axis, steps) end          -- bar widget scroll; axis is "vertical" | "horizontal",
+--                                               -- steps is whole wheel detents (negative = up / left)
 --   function onQuery(text) / onActivate(id) end -- launcher provider
 --   function onFrameTick(deltaMs) end           -- continuous animation (setNeedsFrameTick)
 --   function onAudioSpectrum(valuesCsv, stateCsv) end -- audio-reactive bar widget

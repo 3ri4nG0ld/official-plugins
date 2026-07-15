@@ -13,7 +13,7 @@ description = "Translate text from the launcher via Google Translate."
 [[launcher_provider]]
 id = "translate"
 entry = "translator.luau"
-prefix = "/tr"
+prefix = "tr"
 glyph = "language"
 include_in_global_search = false
 debounce_ms = 300  # wait for typing to settle before calling Google

@@ -1,7 +1,7 @@
 # Minimal reference plugin. Demonstrates the full bar-widget pipeline:
 # static manifest -> appears in the Add-widget picker -> renders/ticks ->
 # manifest-driven settings -> onIpc. Also ships a launcher provider that shows
-# launcher.setQuery() drill-in (type `/ex`).
+# launcher.setQuery() (type `/ex`).
 # See noctalia-docs plugins guide.
 
 id = "noctalia/example"
@@ -13,7 +13,7 @@ license = "MIT"
 dependencies = []
 tags = ["demo"]
 icon = "puzzle"
-description = "A minimal reference plugin: a bar widget with settings and IPC, a declarative bar widget (barWidget.render), a service, a shortcut, a launcher provider with setQuery drill-in, and a panel of interactive controls."
+description = "A minimal reference plugin: a bar widget with settings and IPC, a declarative bar widget (barWidget.render), a service, a shortcut, a launcher provider using setQuery, and a panel of interactive controls."
 
 [[widget]]
 id = "hello"
@@ -59,13 +59,13 @@ entry = "ticker.luau"
 id = "toggle"
 entry = "shortcut.luau"
 
-# Launcher provider: type `/ex` in the launcher. Categories drill in via
-# launcher.setQuery() (the input is rewritten and the launcher stays open);
+# Launcher provider: type `/ex` in the launcher. Selecting a category opens it via
+# launcher.setQuery() (prefix-relative, so the launcher stays in this provider);
 # leaf items copy to the clipboard and let the launcher close.
 [[launcher_provider]]
 id = "finder"
 entry = "finder.luau"
-prefix = "/ex"
+prefix = "ex"
 glyph = "list-search"
 include_in_global_search = false
 
