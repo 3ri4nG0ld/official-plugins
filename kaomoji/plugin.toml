@@ -20,7 +20,7 @@ default = true
 [[launcher_provider]]
 id = "kaomoji"
 entry = "kaomoji.luau"
-prefix = "/kao"
+prefix = "kao"
 glyph = "mood-smile"
 include_in_global_search = false
 

@@ -27,7 +27,7 @@ ROOT_STRING_FIELDS = (
 ROOT_ARRAY_FIELDS = ("dependencies", "tags")
 ENTRY_TYPES = ("widget", "panel", "shortcut", "desktop_widget", "launcher_provider", "service")
 SETTING_OWNER_TYPES = ("widget", "panel", "desktop_widget", "launcher_provider")
-SETTING_TYPES = {"string", "string_list", "bool", "glyph", "select", "folder", "int", "color"}
+SETTING_TYPES = {"string", "string_list", "bool", "glyph", "select", "folder", "file", "int", "color"}
 PANEL_PLACEMENTS = {"attached", "floating"}
 PANEL_POSITIONS = {
     "auto",
@@ -430,12 +430,12 @@ class Validator:
         option_values: list[str],
     ) -> None:
         if "default" not in setting:
-            if setting_type != "folder":
+            if setting_type not in {"folder", "file"}:
                 self.add_context_error(manifest_path, context, "default is required")
             return
 
         default = setting["default"]
-        if setting_type in {"string", "folder"} and not isinstance(default, str):
+        if setting_type in {"string", "folder", "file"} and not isinstance(default, str):
             self.add_context_error(manifest_path, context, "default must be a string")
         elif setting_type in {"glyph", "color"} and not is_non_empty_string(default):
             self.add_context_error(manifest_path, context, "default must be a non-empty string")

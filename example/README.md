@@ -9,13 +9,20 @@ shortcut.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/example` |
-| Entries | Bar widget: `hello`; service: `ticker`; shortcut: `toggle` |
+| Entries | Bar widgets: `hello`, `declarative`; service: `ticker`; shortcut: `toggle`; launcher: `finder`; panel: `panel` |
 
 ## Usage
 
 Add the `hello` widget from the Add-widget picker. The widget displays a
 configurable label and glyph, counts clicks, reads `data.txt`, and watches the
 shared `tick` state published by the `ticker` service.
+
+Add the `declarative` widget to see the same service tick rendered as a
+`ui.*` tree via `barWidget.render()` — a glyph, the live counter in a filled
+rounded badge (impossible with the imperative API), and an inline `ui.button`
+whose click is handled separately from the widget-level `onClick`. Simple
+widgets can keep using `setText`/`setGlyph`; `render()` is the declarative
+alternative for composite content.
 
 Add the `toggle` shortcut from Settings -> Control Center shortcuts. It toggles
 shared plugin state and shows how shortcut entries can render an active state.
@@ -39,3 +46,14 @@ noctalia msg plugin noctalia/example:hello focused fetch "https://example.com"
 
 `set` updates the widget label at runtime. `fetch` performs an asynchronous HTTP
 request and reports the response status in a notification.
+
+You can open the example panel with the following IPC call:
+
+```sh
+noctalia msg panel-toggle noctalia/example:panel
+```
+
+The panel includes a **Color picker** section. Click **Choose color** to open
+Noctalia's native dialog; applying a color updates the swatch and displays the
+hex value returned to the plugin callback, while cancelling displays the
+cancellation result.

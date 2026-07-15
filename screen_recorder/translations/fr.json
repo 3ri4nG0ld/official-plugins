@@ -21,8 +21,7 @@
       "description": "Mode de capture de GPU Screen Recorder. Focused enregistre l'écran actif de Noctalia.",
       "options": {
         "focused": "Écran actif",
-        "portal": "Portail",
-        "region": "Région"
+        "portal": "Portail"
       }
     },
     "directory": {

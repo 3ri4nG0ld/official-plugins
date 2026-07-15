@@ -60,7 +60,7 @@ export type LauncherResult = {
   badge: string?,
   category: string?, -- must match a [[launcher_provider.category]] label
   presentation: string?,
-  query: string?, -- echo the onQuery text so late async results map back
+  query: string?, -- on activate, set this provider's query to this sub-query (host adds the prefix)
   score: number?,
 }
 
@@ -104,6 +104,12 @@ export type Noctalia = {
   outputs: () -> { Output },
   isDarkMode: () -> boolean,
 
+  -- App icons. Resolves an app id (desktop-entry id / StartupWMClass) — or a
+  -- raw icon name when no entry matches — to an icon file path via the host's
+  -- XDG icon-theme resolver, for use with ui.image. sizePx is the intended
+  -- on-screen pixel size; nil when nothing resolves.
+  appIconPath: (appIdOrIconName: string, sizePx: number?) -> string?,
+
   -- Wallpaper. setWallpaper(path) targets all outputs; setWallpaper(connector,
   -- path) targets one.
   setWallpaperEnabled: (connector: string, enabled: boolean) -> (),
@@ -112,6 +118,10 @@ export type Noctalia = {
 
   -- Panels.
   togglePanel: (panelId: string) -> (), -- "author/plugin:panel"
+
+  -- Dialogs. The callback receives the selected canonical #RRGGBB color, or nil
+  -- when the dialog is cancelled.
+  openColorPicker: (initialColor: string, onClose: (color: string?) -> ()) -> boolean,
 
   -- Notifications.
   notify: (title: string, body: string?) -> (),
@@ -137,6 +147,11 @@ export type Noctalia = {
   listDir: (path: string) -> ({ string }?, string?),
   pluginDir: () -> string?,
 
+  -- Register a font file (path resolves like readFile) so its family becomes
+  -- usable in setFont / a ui label's fontFamily. Returns the family name, or
+  -- (nil, err). The family is visible to every surface once loaded.
+  loadFont: (path: string) -> (string?, string?),
+
   -- Translation against the plugin's own translations/<lang>.json.
   tr: (key: string, subst: { [string]: string | number | boolean }?) -> string,
   trp: (key: string, count: number, subst: { [string]: string | number | boolean }?) -> string,
@@ -156,6 +171,13 @@ export type Noctalia = {
 
 declare noctalia: Noctalia
 
+-- One node of a declarative ui.* control tree (bar widgets, desktop widgets, panels).
+export type UiNode = {
+  type: string,
+  props: { [string]: any },
+  children: { UiNode },
+}
+
 -- ── barWidget.* — [[widget]] presentation ────────────────────────────────────
 
 declare barWidget: {
@@ -164,12 +186,20 @@ declare barWidget: {
   setImage: (path: string, watch: boolean?, width: number?, height: number?) -> (),
   setTooltip: (tooltip: (string | TooltipRow | { TooltipRow })?) -> (),
   clearTooltip: () -> (),
-  setFont: (family: string) -> (), -- family name or plugin-relative .otf/.ttf/.woff2
+  -- family: a font family name (load a file first with noctalia.loadFont).
+  -- baseline: "text" (default) | "textFixedHeight" | "inkCentered" | "pictographic"
+  -- ("pictographic" centers art/icon fonts anchored at the ink top, e.g. bongocat).
+  setFont: (family: string, baseline: string?) -> (),
   setColor: (role: string, mode: string?) -> (),
   setGlyphColor: (role: string, mode: string?) -> (),
   isVertical: () -> boolean,
+  -- Connector name of the output this widget instance's bar is on (nil when
+  -- unknown). Per-instance, unlike noctalia.focusedOutputName().
+  outputName: () -> string?,
   setVisible: (visible: boolean) -> (),
-  getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
+  -- Declarative alternative to setText/setGlyph: the tree replaces the built-in
+  -- glyph/text row. ui.input/ui.select/ui.scroll are not supported in the bar.
+  render: (tree: UiNode) -> (),
 }
 
 -- ── shortcut.* — [[shortcut]] quick-toggle tile ──────────────────────────────
@@ -181,13 +211,7 @@ declare shortcut: {
   setEnabled: (enabled: boolean) -> (),
 }
 
--- ── ui.* — declarative control tree (desktop widgets + panels) ───────────────
-
-export type UiNode = {
-  type: string,
-  props: { [string]: any },
-  children: { UiNode },
-}
+-- ── ui.* — declarative control tree (bar widgets, desktop widgets, panels) ───
 
 type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 
@@ -214,8 +238,7 @@ declare ui: {
 
 declare launcher: {
   setResults: (query: string, results: { LauncherResult }) -> (),
-  setQuery: (text: string) -> (),
-  getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
+  setQuery: (text: string) -> (), -- set input to this provider's prefix + text (stays in provider); "" resets to root
 }
 
 -- ── desktopWidget.* — [[desktop_widget]] declarative UI ──────────────────────
@@ -224,7 +247,6 @@ declare desktopWidget: {
   render: (tree: UiNode) -> (),
   setWantsSecondTicks: (wants: boolean) -> (),
   setNeedsFrameTick: (needs: boolean) -> (),
-  getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
 }
 
 -- ── panel.* — [[panel]] declarative UI ───────────────────────────────────────
@@ -233,7 +255,6 @@ declare panel: {
   render: (tree: UiNode) -> (),
   close: () -> (),
   setWantsSecondTicks: (wants: boolean) -> (),
-  getConfig: (key: string) -> any, -- string | number | boolean | {string} | nil
 }
 
 -- ── Entry-point callbacks ────────────────────────────────────────────────────
@@ -244,10 +265,14 @@ declare panel: {
 --   function update() end                       -- bar/desktop widget, service tick
 --   function onIpc(event, payload) end          -- any entry (payload: string?)
 --   function onClick() / onRightClick() end     -- shortcut
+--   function onScroll(axis, steps) end          -- bar widget scroll; axis is "vertical" | "horizontal",
+--                                               -- steps is whole wheel detents (negative = up / left)
 --   function onQuery(text) / onActivate(id) end -- launcher provider
 --   function onFrameTick(deltaMs) end           -- continuous animation (setNeedsFrameTick)
 --   function onAudioSpectrum(valuesCsv, stateCsv) end -- audio-reactive bar widget
 --   function onOpen(context) / onClose() end    -- panel lifecycle
+--   function onConfigChanged() end              -- service: plugin settings changed; getConfig() now returns new values
+--   function onExit(signal) end                  -- any entry teardown (0 normally, 2 for SIGINT, 15 for SIGTERM)
 --
 -- These are intentionally NOT declared here: declaring them as globals makes
 -- luau-lsp treat your definition as overwriting a built-in.

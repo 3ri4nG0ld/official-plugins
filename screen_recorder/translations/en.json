@@ -21,8 +21,7 @@
       "description": "GPU Screen Recorder capture mode. Focused records Noctalia's focused monitor.",
       "options": {
         "focused": "Focused",
-        "portal": "Portal",
-        "region": "Region"
+        "portal": "Portal"
       }
     },
     "directory": {
