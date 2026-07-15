@@ -232,8 +232,8 @@ local function startMpvpaper(connector, path)
       cmd = "systemd-run --user --scope " .. propsCmd .. "--unit=" .. shellQuote(unitName) .. " " .. cmd
     end
 
-    -- Run mpvpaper
-    noctalia.runStream("exec " .. cmd .. " 2>/dev/null", function() end)
+    -- Run mpvpaper in background
+    noctalia.runAsync("exec " .. cmd .. " 2>/dev/null", function() end)
     noctalia.runAsync("sleep 0.8", function()
       forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, false) end)
     end)
